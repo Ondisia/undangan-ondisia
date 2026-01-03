@@ -27,7 +27,6 @@ const App = () => (
             <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
               <Route path="/invitation" element={<Invitation />} />
               <Route path="/invitation/:id" element={<Invitation />} />
 

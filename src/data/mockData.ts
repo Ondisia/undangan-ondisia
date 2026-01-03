@@ -48,34 +48,47 @@ export const mockThemes: Theme[] = [
 
 export const mockGuests: Guest[] = [];
 
-// Empty mock settings as we now use Supabase
-// Exported just in case of any lingering imports, but should be unused
-export const mockSettings: InvitationSettings = {
-  eventName: '',
+export const previewSettings: InvitationSettings = {
+  eventName: 'The Wedding of Budi & Shanti',
   selectedThemeId: '1',
-  groomName: '',
-  groomFullName: '',
-  groomDescription: '',
-  groomFatherName: '',
-  groomMotherName: '',
-  brideName: '',
-  brideFullName: '',
-  brideDescription: '',
-  brideFatherName: '',
-  brideMotherName: '',
-  akadDate: '',
-  akadStartTime: '',
-  akadEndTime: '',
-  akadLocation: '',
-  resepsiDate: '',
-  resepsiStartTime: '',
-  resepsiEndTime: '',
-  resepsiLocation: '',
-  loveStory: [],
-  bankAccounts: [],
-  galleryPhotos: [],
-  // Legacy
-  eventDate: '',
-  eventTime: '',
-  eventLocation: ''
+  openingQuote: '"Dan di antara tanda-tanda kebesaran-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang."',
+  closingMessage: 'Terima kasih atas doa restu Anda.',
+  groomName: 'Budi',
+  groomFullName: 'Budi Santoso, S.T.',
+  groomDescription: 'Putra pertama dari Bapak Ahmad & Ibu Siti',
+  groomFatherName: 'Ahmad',
+  groomMotherName: 'Siti',
+  groomPhotoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop',
+  brideName: 'Shanti',
+  brideFullName: 'Shanti Lestari, S.Pd.',
+  brideDescription: 'Putri bungsu dari Bapak Hartono & Ibu Aminah',
+  brideFatherName: 'Hartono',
+  brideMotherName: 'Aminah',
+  bridePhotoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop',
+  akadDate: '2026-05-20',
+  akadStartTime: '08:00',
+  akadEndTime: '10:00',
+  akadLocation: 'Masjid Agung Al-Azhar, Jakarta',
+  resepsiDate: '2026-05-20',
+  resepsiStartTime: '11:00',
+  resepsiEndTime: '13:00',
+  resepsiLocation: 'Balai Kartini, Jakarta Selatan',
+  mapsUrl: 'https://goo.gl/maps/example',
+  musicUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+  galleryPhotos: [
+    'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800',
+    'https://images.unsplash.com/photo-1519741497674-611481863552?w=800',
+    'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800'
+  ],
+  loveStory: [
+    { title: 'Pertama Bertemu', date: '2020', description: 'Kami bertemu pertama kali di sebuah acara seminar kampus.', icon: '🎓' },
+    { title: 'Menjalin Hubungan', date: '2022', description: 'Setelah sekian lama berteman, kami memutuskan untuk berkomitmen.', icon: '❤️' }
+  ],
+  bankAccounts: [
+    { bankName: 'BCA', accountNumber: '1234567890', accountHolder: 'Budi Santoso' },
+    { bankName: 'Mandiri', accountNumber: '0987654321', accountHolder: 'Shanti Lestari' }
+  ],
+  eventDate: '2026-05-20',
+  eventTime: '08:00',
+  eventLocation: 'Masjid Agung Al-Azhar, Jakarta'
 };

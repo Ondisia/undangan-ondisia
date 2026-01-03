@@ -141,11 +141,9 @@ const Login = () => {
                                 )}
                             </Button>
 
+                            {/* Registration is handled by admin only */}
                             <p className="text-sm text-center text-muted-foreground">
-                                Belum punya akun?{' '}
-                                <Link to="/register" className="text-gold hover:underline font-medium">
-                                    Daftar sekarang
-                                </Link>
+                                Silakan hubungi admin di Shopee untuk pembuatan akun.
                             </p>
                         </CardFooter>
                     </form>

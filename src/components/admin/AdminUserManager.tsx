@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
@@ -15,6 +14,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { adminCreateUser, deleteUser } from '@/services/adminService';
+import { UserPlus, Search, X, Loader2, Trash2 } from 'lucide-react';
 
 export function AdminUserManager() {
     const [users, setUsers] = useState<UserProfile[]>([]);
@@ -22,6 +32,16 @@ export function AdminUserManager() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [assigningTheme, setAssigningTheme] = useState<string | null>(null);
+    
+    // Create User Form State
+    const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
+    const [formData, setFormData] = useState({
+        fullName: '',
+        email: '',
+        password: '',
+        themeId: ''
+    });
 
     useEffect(() => {
         loadData();
@@ -41,6 +61,23 @@ export function AdminUserManager() {
             console.error(error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleCreateUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsCreating(true);
+        try {
+            await adminCreateUser(formData);
+            toast.success('User berhasil dibuat!');
+            setIsAddUserOpen(false);
+            setFormData({ fullName: '', email: '', password: '', themeId: '' });
+            loadData(); // Refresh list
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.message || 'Gagal membuat user');
+        } finally {
+            setIsCreating(false);
         }
     };
 
@@ -66,6 +103,19 @@ export function AdminUserManager() {
         }
     };
 
+    const handleDeleteUser = async (userId: string) => {
+        if (!confirm('Apakah Anda yakin ingin menghapus user ini secara PERMANEN? Semua data undangan user ini akan ikut terhapus.')) return;
+        
+        try {
+            await deleteUser(userId);
+            setUsers(users.filter(u => u.id !== userId));
+            toast.success('User berhasil dihapus secara permanen');
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.message || 'Gagal menghapus user');
+        }
+    };
+
     const getThemeName = (themeId: string | null | undefined) => {
         if (!themeId) return '-';
         const theme = themes.find(t => t.id === themeId);
@@ -84,14 +134,98 @@ export function AdminUserManager() {
                     <h2 className="text-2xl font-bold font-display text-gold">Kelola User</h2>
                     <p className="text-muted-foreground">Pantau dan kelola akses pengguna serta tentukan tema mereka.</p>
                 </div>
-                <div className="relative w-full sm:w-64">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Cari user..."
-                        className="pl-8"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                
+                <div className="flex items-center gap-3">
+                    <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="gold" className="flex items-center gap-2">
+                                <UserPlus className="h-4 w-4" />
+                                <span className="hidden sm:inline">Tambah Customer</span>
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle>Tambah Customer Baru</DialogTitle>
+                                <DialogDescription>
+                                    Buat akun customer baru dan tentukan tema undangan mereka.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleCreateUser} className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">Nama Lengkap</Label>
+                                    <Input 
+                                        id="name" 
+                                        placeholder="Contoh: Budi & Shanti" 
+                                        required 
+                                        value={formData.fullName}
+                                        onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">Email</Label>
+                                    <Input 
+                                        id="email" 
+                                        type="email" 
+                                        placeholder="email@pelanggan.com" 
+                                        required 
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="password">Password</Label>
+                                    <Input 
+                                        id="password" 
+                                        type="password" 
+                                        placeholder="Min. 6 karakter" 
+                                        required 
+                                        minLength={6}
+                                        value={formData.password}
+                                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="theme">Pilih Tema (Sesuai Pesanan)</Label>
+                                    <Select 
+                                        value={formData.themeId}
+                                        onValueChange={(value) => setFormData({...formData, themeId: value})}
+                                        required
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Pilih tema persembahan..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {themes.map(theme => (
+                                                <SelectItem key={theme.id} value={theme.id}>
+                                                    {theme.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <DialogFooter className="pt-4">
+                                    <Button type="submit" className="w-full" variant="gold" disabled={isCreating}>
+                                        {isCreating ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Memproses...
+                                            </>
+                                        ) : 'Buat Akun & Tugaskan Tema'}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+
+                    <div className="relative w-full sm:w-64">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Cari user..."
+                            className="pl-8"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -178,16 +312,29 @@ export function AdminUserManager() {
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <div className="flex justify-end items-center gap-2">
-                                            <Label htmlFor={`switch-${user.id}`} className="text-xs text-muted-foreground hidden sm:inline-block">
-                                                {user.is_active ? 'Matikan' : 'Hidupkan'}
-                                            </Label>
-                                            <Switch
-                                                id={`switch-${user.id}`}
-                                                checked={user.is_active}
-                                                onCheckedChange={() => handleToggleStatus(user.id, user.is_active)}
+                                        <div className="flex justify-end items-center gap-4">
+                                            <div className="flex items-center gap-2 pr-4 border-r border-border/50">
+                                                <Label htmlFor={`switch-${user.id}`} className="text-xs text-muted-foreground hidden sm:inline-block">
+                                                    {user.is_active ? 'Aktif' : 'Non-Aktif'}
+                                                </Label>
+                                                <Switch
+                                                    id={`switch-${user.id}`}
+                                                    checked={user.is_active}
+                                                    onCheckedChange={() => handleToggleStatus(user.id, user.is_active)}
+                                                    disabled={user.role === 'super_admin'}
+                                                />
+                                            </div>
+                                            
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                onClick={() => handleDeleteUser(user.id)}
                                                 disabled={user.role === 'super_admin'}
-                                            />
+                                                title="Hapus User Permanen"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
                                         </div>
                                     </TableCell>
                                 </TableRow>

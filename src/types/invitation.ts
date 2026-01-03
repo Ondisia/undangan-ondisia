@@ -37,6 +37,7 @@ export interface InvitationSettings {
   // Basic Info
   eventName: string;
   selectedThemeId: string; // theme_id in DB
+  themeSlug?: string;
   openingQuote?: string;
   closingMessage?: string;
 

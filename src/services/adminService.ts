@@ -1,15 +1,36 @@
 import { supabase } from '@/lib/supabaseClient';
 
-// --- Types ---
 export interface Theme {
     id: string;
     name: string;
     description: string;
     thumbnail_url: string;
     category: string;
+    slug: string; // The identifier for the layout component
     is_active: boolean;
     created_at?: string;
 }
+
+// --- Storage Service ---
+
+export const uploadThemeThumbnail = async (file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { data, error } = await supabase.storage
+        .from('theme-thumbnails')
+        .upload(filePath, file);
+
+    if (error) throw error;
+
+    // Get Public URL
+    const { data: { publicUrl } } = supabase.storage
+        .from('theme-thumbnails')
+        .getPublicUrl(filePath);
+
+    return publicUrl;
+};
 
 export interface UserProfile {
     id: string;
@@ -103,6 +124,27 @@ export const assignThemeToUser = async (userId: string, themeId: string | null) 
 
     if (error) throw error;
     return data as UserProfile;
+};
+
+export const adminCreateUser = async (userData: { email: string; password: string; fullName: string; themeId: string }) => {
+    const { data, error } = await supabase.rpc('admin_create_user', {
+        p_email: userData.email,
+        p_password: userData.password,
+        p_full_name: userData.fullName,
+        p_theme_id: userData.themeId
+    });
+
+    if (error) throw error;
+    return data;
+};
+
+export const deleteUser = async (userId: string) => {
+    const { data, error } = await supabase.rpc('admin_delete_user', {
+        target_user_id: userId
+    });
+
+    if (error) throw error;
+    return data;
 };
 
 export const getDashboardStats = async () => {

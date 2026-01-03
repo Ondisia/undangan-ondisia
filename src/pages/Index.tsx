@@ -87,9 +87,24 @@ const Index = () => {
         } else {
           // Auto-create for new user to ensure ID exists
           try {
-            const newInv = await createOrUpdateInvitation(user.id, defaultSettings);
+            // Use the first available theme ID from DB if possible
+            const initialThemeId = themesData && themesData.length > 0 
+                ? themesData[0].id 
+                : '1';
+            
+            const newInv = await createOrUpdateInvitation(user.id, {
+                ...defaultSettings,
+                selectedThemeId: initialThemeId
+            });
+            
             if (newInv) {
-              setSettings({ ...defaultSettings, id: newInv.id, userId: user.id });
+              setSettings({ 
+                ...defaultSettings, 
+                id: newInv.id, 
+                userId: user.id,
+                selectedThemeId: initialThemeId 
+              });
+              setSelectedThemeId(initialThemeId);
             }
           } catch (error) {
             console.error("Auto-create failed", error);

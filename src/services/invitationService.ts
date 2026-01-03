@@ -98,7 +98,7 @@ export const getInvitation = async (userId: string): Promise<InvitationSettings 
     }
 };
 
-export const getInvitationById = async (id: string): Promise<InvitationSettings | null> => {
+export const getInvitationById = async (invitationId: string): Promise<InvitationSettings | null> => {
     try {
         const { data: invitation, error } = await supabase
             .from('invitations')
@@ -107,17 +107,16 @@ export const getInvitationById = async (id: string): Promise<InvitationSettings 
         love_story (*),
         bank_accounts (*)
       `)
-            .eq('id', id)
+            .eq('id', invitationId)
             .single();
 
         if (error) {
-            if (error.code === 'PGRST116') return null;
+            if (error.code === 'PGRST116') return null; // Not found
             throw error;
         }
 
         if (!invitation) return null;
 
-        // Map DB response
         const loveStory = (invitation.love_story || []).sort((a: any, b: any) => a.order_index - b.order_index).map((item: any) => ({
             title: item.title,
             date: item.date,
@@ -131,16 +130,26 @@ export const getInvitationById = async (id: string): Promise<InvitationSettings 
             accountHolder: item.account_holder
         }));
 
+        // Fetch slug separately for better compatibility if join fails
+        let themeSlug = 'default';
+        if (invitation.theme_id) {
+            const { data: themeData } = await supabase
+                .from('themes')
+                .select('slug')
+                .eq('id', invitation.theme_id)
+                .single();
+            if (themeData?.slug) themeSlug = themeData.slug;
+        }
+
         return {
             id: invitation.id,
             userId: invitation.user_id,
-
             eventName: invitation.event_name,
             selectedThemeId: invitation.theme_id,
+            themeSlug: themeSlug,
             openingQuote: invitation.opening_quote,
             closingMessage: invitation.closing_message,
             musicUrl: invitation.music_url,
-
             groomName: invitation.groom_name,
             groomFullName: invitation.groom_full_name,
             groomTitle: invitation.groom_title,
@@ -148,7 +157,6 @@ export const getInvitationById = async (id: string): Promise<InvitationSettings 
             groomFatherName: invitation.groom_father_name,
             groomMotherName: invitation.groom_mother_name,
             groomPhotoUrl: invitation.groom_photo_url,
-
             brideName: invitation.bride_name,
             brideFullName: invitation.bride_full_name,
             brideTitle: invitation.bride_title,
@@ -156,27 +164,22 @@ export const getInvitationById = async (id: string): Promise<InvitationSettings 
             brideFatherName: invitation.bride_father_name,
             brideMotherName: invitation.bride_mother_name,
             bridePhotoUrl: invitation.bride_photo_url,
-
             akadDate: invitation.akad_date,
             akadStartTime: invitation.akad_start_time,
             akadEndTime: invitation.akad_end_time,
             akadLocation: invitation.akad_location,
-
             resepsiDate: invitation.resepsi_date,
             resepsiStartTime: invitation.resepsi_start_time,
             resepsiEndTime: invitation.resepsi_end_time,
             resepsiLocation: invitation.resepsi_location,
-
             mapsUrl: invitation.maps_url,
             galleryPhotos: invitation.gallery_photos || [],
             loveStory,
             bankAccounts,
-
             eventDate: invitation.akad_date,
             eventTime: invitation.akad_start_time,
             eventLocation: invitation.akad_location,
         };
-
     } catch (error) {
         console.error('Error fetching invitation by ID:', error);
         throw error;
@@ -335,4 +338,18 @@ export const createOrUpdateInvitation = async (userId: string, settings: Invitat
         console.error('❌❌❌ CRITICAL SAVE ERROR:', error);
         throw error;
     }
+};
+
+export const getThemeById = async (themeId: string) => {
+    const { data, error } = await supabase
+        .from('themes')
+        .select('*')
+        .eq('id', themeId)
+        .single();
+    
+    if (error) {
+        console.error('Error fetching theme:', error);
+        return null;
+    }
+    return data;
 };
